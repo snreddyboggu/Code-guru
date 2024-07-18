@@ -19,7 +19,25 @@ jobs:
       with:
         fetch-depth: 0   # Required
 
-    # Step 2: Configure AWS Credentials
+    # Step 2: Set up Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 20
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Step 4: Build the project
+    - name: Build the project
+      run: npm run build
+
+    # Step 5: Verify build artifacts
+    - name: List build directory
+      run: ls -al target # Adjust this path to your actual build output directory
+
+    # Step 6: Configure AWS Credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -27,14 +45,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    # Step 3: Run Amazon CodeGuru Reviewer Scanner
+    # Step 7: Run Amazon CodeGuru Reviewer Scanner
     - name: Amazon CodeGuru Reviewer Scanner
       uses: aws-actions/codeguru-reviewer@v1.1
       with:
-        build_path: target # build artifact(s) directory
-        s3_bucket: codeguru-reviewer-mybucket  # S3 Bucket with "codeguru-reviewer-*" prefix
+        build_path: target # Adjust this to your actual build artifacts directory
+        s3_bucket: codeguru-reviewer-my-bucket  # Ensure this bucket exists and has the correct prefix
 
-    # Step 4: Upload review result
+    # Step 8: Upload review result
     - name: Upload review result
       uses: github/codeql-action/upload-sarif@v1
       with:
