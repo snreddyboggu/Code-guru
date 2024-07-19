@@ -27,16 +27,19 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1  # North Virginia
 
-    # Step 3: Add CodeGuru Reviewer Action
+    # Step 3: Run CodeGuru Reviewer Action
     - name: CodeGuru Reviewer
       uses: aws-actions/codeguru-reviewer@v1.1
       with:
-        source_path: . # Directory to analyze, adjust if needed
+        source_path: . # Analyzing all code in the root directory
         s3_bucket: codeguru-reviewer-satya-bucket  # Your S3 Bucket
 
-    # Step 4: Upload review result
+    # Step 4: Verify SARIF file creation
+    - name: Verify SARIF file
+      run: ls -al codeguru-results.sarif.json # Verify that the SARIF file is created
+
+    # Step 5: Upload review result
     - name: Upload review result
-      if: ${{ github.event_name != 'push' }}
       uses: github/codeql-action/upload-sarif@v1
       with:
         sarif_file: codeguru-results.sarif.json
