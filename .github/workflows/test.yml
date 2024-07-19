@@ -17,43 +17,44 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        fetch-depth: 0   # Required
+        fetch-depth: 0
 
-    # Step 2: Set up Node.js environment
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 20
-
-    # Step 3: Install dependencies
-    - name: Install dependencies
-      run: npm install
-
-    # Step 4: Build the project
-    - name: Build the project
-      run: npm run build
-
-    # Step 5: Verify build artifacts
-    - name: List build directory
-      run: ls -al target # Adjust this path to your actual build output directory
-
-    # Step 6: Configure AWS Credentials
+    # Step 2: Configure AWS Credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: us-east-1  # North Virginia
 
-    # Step 7: Run Amazon CodeGuru Reviewer Scanner
-    - name: Amazon CodeGuru Reviewer Scanner
+    # Step 3: Set up Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 20
+
+    # Step 4: Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Step 5: Build the project
+    - name: Build the project
+      run: npm run build
+
+    # Step 6: Verify build artifacts
+    - name: Verify build artifacts
+      run: ls -al target # Adjust this path to your actual build output directory
+
+    # Step 7: Add CodeGuru Reviewer Action
+    - name: CodeGuru Reviewer
       uses: aws-actions/codeguru-reviewer@v1.1
       with:
-        build_path: target # Adjust this to your actual build artifacts directory
-        s3_bucket: codeguru-reviewer-my-bucket  # Ensure this bucket exists and has the correct prefix
+        build_path: target # build artifact(s) directory
+        s3_bucket: codeguru-reviewer-satya-bucket  # Your S3 Bucket
 
     # Step 8: Upload review result
     - name: Upload review result
+      if: ${{ github.event_name != 'push' }}
       uses: github/codeql-action/upload-sarif@v1
       with:
         sarif_file: codeguru-results.sarif.json
